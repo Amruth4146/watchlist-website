@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google-site-verification" content="Tlg6uFFcjY-m8MUY-t46WVsmmHtqF0UB3s0D1Z2-LpI" />
+  <title>Persistent Watch List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .form-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      max-width: 900px;
+      margin: auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .circle-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      color: white;
+      font-size: 18px;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tick {
+      background-color: green;
+    }
+
+    .cross {
+      background-color: red;
+    }
+
+    .selected-green {
+      outline: 3px solid limegreen;
+    }
+
+    .selected-red {
+      outline: 3px solid crimson;
+    }
+
+    .strike {
+      text-decoration: line-through;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>💼 Persistent Watch List</h2>
+
+  <div class="form-group">
+    <input type="text" id="name" placeholder="Enter name">
+    <input type="text" id="task" placeholder="Enter task">
+    <input type="text" id="amount" placeholder="Enter amount">
+    <button onclick="addRow()">Add to List</button>
+  </div>
+
+  <table id="watchListTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Task</th>
+        <th>Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    let list = JSON.parse(localStorage.getItem("watchListData")) || [];
+
+    function saveToLocalStorage() {
+      localStorage.setItem("watchListData", JSON.stringify(list));
+    }
+
+    function addRow() {
+      const name = document.getElementById('name').value.trim();
+      const task = document.getElementById('task').value.trim();
+      const amount = document.getElementById('amount').value.trim();
+
+      if (!name || !task || !amount) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const item = {
+        name,
+        task,
+        amount,
+        status: "none" // could be "paid" or "unpaid"
+      };
+
+      list.push(item);
+      saveToLocalStorage();
+      renderTable();
+
+      // Clear input fields
+      document.getElementById('name').value = '';
+      document.getElementById('task').value = '';
+      document.getElementById('amount').value = '';
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('watchListTable').querySelector('tbody');
+      tbody.innerHTML = '';
+
+      list.forEach((item, index) => {
+        const row = document.createElement('tr');
+
+        // Apply strike-through if paid
+        const rowStyle = item.status === 'paid' ? 'strike' : '';
+
+        row.innerHTML = `
+          <td class="${rowStyle}">${item.name}</td>
+          <td class="${rowStyle}">${item.task}</td>
+          <td class="${rowStyle}">${item.amount}</td>
+          <td>
+            <button class="circle-btn tick ${item.status === 'paid' ? 'selected-green' : ''}" 
+              onclick="setPaid(${index})">✔</button>
+            <button class="circle-btn cross ${item.status === 'unpaid' ? 'selected-red' : ''}" 
+              onclick="setUnpaid(${index})">✘</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function setPaid(index) {
+      list[index].status = "paid";
+      saveToLocalStorage();
+      renderTable();
+    }
+
+    function setUnpaid(index) {
+      list[index].status = "unpaid";
+      saveToLocalStorage();
+      renderTable();
+    }
+
+    // Initial load
+    renderTable();
+  </script>
+
+</body>
+</html>
